@@ -12,9 +12,9 @@ const AppHeader = () => {
     return (
         <Header
                 style={{
-                    position: 'sticky',
+                    position: 'fixed',
                     top: 0,
-                    zIndex: 1,
+                    zIndex: 999,
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
