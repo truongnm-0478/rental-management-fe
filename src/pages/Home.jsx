@@ -1,10 +1,22 @@
-import { Button } from 'antd'
+import { theme } from 'antd'
 
 const Home = () => {
+    const {
+        token: { colorBgContainer, borderRadiusLG },
+    } = theme.useToken()
+
     return (
-        <div style={{ textAlign: "center", marginTop: 50, minHeight: '70vh' }}>
-            <h1>Chào mừng đến với Ant Design!</h1>
-            <Button type="primary">Nhấn vào tôi</Button>
+        <div style={{ 
+            textAlign: "center", 
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+            minHeight: 495,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+        }}>
+            <h2>私たちのシステムへようこそ！</h2>
         </div>
     )
 }
