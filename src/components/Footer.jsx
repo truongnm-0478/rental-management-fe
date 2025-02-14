@@ -1,13 +1,17 @@
-import React from 'react'
+import { Layout } from 'antd'
 
-const Footer = () => {
+const { Footer } = Layout
+
+const AppFooter = () => {
     return (
-        <div>
-            <footer className="bg-gray-800 text-white p-4 text-center">
-                <p>&copy; 2021 React Router</p>
-            </footer>
-        </div>
+        <Footer
+                style={{
+                    textAlign: 'center',
+                }}
+            >
+                Copyright Ant Design ©{new Date().getFullYear()} Created by Ngo Mau Truong
+            </Footer>
     )
 }
 
-export default Footer
+export default AppFooter

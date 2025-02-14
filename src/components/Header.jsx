@@ -1,13 +1,38 @@
-import React from 'react'
+import { Layout, Menu } from 'antd'
 
-const Header = () => {
+const { Header } = Layout
+
+const items = [
+    { key: '1', label: 'ホーム' },
+    { key: '2', label: 'サービス' },
+    { key: '3', label: 'お問い合わせ' },
+]
+
+const AppHeader = () => {
     return (
-        <div>
-            <header className="bg-gray-800 text-white p-4 text-center">
-                <h1 className="text-3xl">React Router</h1>
-            </header>
-        </div>
+        <Header
+                style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                }}
+            >
+                <div className="demo-logo" />
+                <Menu
+                    theme="dark"
+                    mode="horizontal"
+                    defaultSelectedKeys={['2']}
+                    items={items}
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                    }}
+                />
+            </Header>
     )
 }
 
-export default Header
+export default AppHeader

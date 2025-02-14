@@ -1,28 +1,48 @@
-import { Layout, Menu } from 'antd'
-import { Outlet } from 'react-router-dom'
+import { Breadcrumb, Layout, theme } from 'antd';
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import AppFooter from '../components/Footer';
+import AppHeader from '../components/Header';
 
-const { Header, Content, Footer } = Layout
+const { Content } = Layout
 
-const items = [
-    { key: "1", label: "Trang chủ" },
-    { key: "2", label: "Dịch vụ" },
-    { key: "3", label: "Liên hệ" },
-]
-
-const MainLayout = () => {
+const App = () => {
+    const {
+        token: { colorBgContainer, borderRadiusLG },
+    } = theme.useToken()
+    
     return (
         <Layout>
-            <Header style={{ color: "white" }}>
-                <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["1"]} items={items} />
-            </Header>
-
-            <Content style={{ padding: "20px" }}>
-                <Outlet />
+            <AppHeader />
+            <Content
+                style={{
+                    padding: '0 48px',
+                }}
+            >
+                <Breadcrumb
+                    style={{
+                        margin: '16px 0',
+                    }}
+                >
+                    <Breadcrumb.Item>Home</Breadcrumb.Item>
+                    <Breadcrumb.Item>List</Breadcrumb.Item>
+                    <Breadcrumb.Item>App</Breadcrumb.Item>
+                </Breadcrumb>
+                <div
+                    style={{
+                        padding: 24,
+                        minHeight: 380,
+                        background: colorBgContainer,
+                        borderRadius: borderRadiusLG,
+                    }}
+                >
+                    <Content style={{ padding: "20px" }}>
+                        <Outlet />
+                    </Content>
+                </div>
             </Content>
-
-            <Footer style={{ textAlign: "center" }}>© 2024 Ant Design</Footer>
+            <AppFooter />
         </Layout>
-    )
-}
-
-export default MainLayout
+    );
+};
+export default App;
