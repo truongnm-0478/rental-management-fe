@@ -10,3 +10,13 @@ export const getAllRooms = async (page = 0, size = 10) => {
         return []
     }
 };
+
+export const getRoomById = async (id) => {
+    try {
+        const response = await axios.get(`${API_URL}/rooms/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi phòng theo id:", error)
+        return []
+    }
+};

@@ -4,7 +4,7 @@ import { createStyles } from "antd-style";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import COLORS from "../../constants/color.js";
-import { getAllRooms } from "../../services/userService.js";
+import { getAllRooms } from "../../services/roomService.js";
 
 const RoomList = () => {
     const navigate = useNavigate();

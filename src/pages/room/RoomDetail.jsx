@@ -1,27 +1,50 @@
-import { Button, Card, Col, Descriptions, Image, message, Modal, Row, Space, Tag } from 'antd';
-import md5 from 'crypto-js/md5';
-import React from 'react';
+import { Button, Card, Col, Descriptions, Image, message, Modal, Row, Space, Spin, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getRoomById } from '../../services/roomService'; // Gọi API từ file service
 
 const RoomDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [room, setRoom] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Dữ liệu mẫu với hash code từ ID
-    const room = {
-        id: id || md5('default-room').toString(),
-        roomNumber: "2C号室",
-        type: "1K",
-        address: "福岡県福岡市博多区諸岡3丁目29-12",
-        building: "レオパレス諸岡2",
-        shortPrice: "4,500円/日",
-        midPrice: "75,000円/月",
-        status: "公開中",
-        image: "https://afamilycdn.com/150157425591193600/2021/1/26/01-16116291542701404412585.jpg",
+    useEffect(() => {
+        fetchRoomDetail();
+    }, [id]);
+
+    const fetchRoomDetail = async () => {
+        try {
+            setLoading(true);
+            const data = await getRoomById(id);
+            console.log("API Response:", data);
+
+            if (!data) {
+                message.error("Không tìm thấy phòng.");
+                return;
+            }
+
+            setRoom({
+                id: data.id,
+                roomNumber: data.roomNumber,
+                type: data.type,
+                address: data.address,
+                building: data.building,
+                shortPrice: data.shortPrice ? `${data.shortPrice}円/日` : "N/A",
+                midPrice: data.midPrice ? `${data.midPrice}円/月` : "N/A",
+                image: data.images?.length ? data.images[0] : null,
+                status: data.status === "AVAILABLE" ? "公開中" : "非公開",
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu phòng:", error);
+            message.error("Lỗi khi tải dữ liệu phòng.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleEdit = () => {
-        navigate(`/rooms/edit/${room.id}`);
+        navigate(`/rooms/edit/${id}`);
     };
 
     const handleDelete = () => {
@@ -35,11 +58,40 @@ const RoomDetail = () => {
         });
     };
 
+    if (loading) {
+        return <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20px" }} />;
+    }
+
+    if (!room) {
+        return <p style={{ textAlign: "center", marginTop: "20px" }}>Không tìm thấy phòng.</p>;
+    }
+
     return (
         <Card title={`部屋詳細 - ${room.roomNumber}`} style={{ width: '100%', margin: '20px auto' }}>
             <Row gutter={[16, 16]}>
                 <Col xs={24} md={12}>
-                    <Image src={room.image} alt="Room" style={{ width: '100%', objectFit: 'cover' }} />
+                    {room.image ? (
+                        <Image
+                            src={room.image}
+                            alt="Room"
+                            style={{ width: '100%', objectFit: 'cover' }}
+                        />
+                    ) : (
+                        <div
+                            style={{
+                                width: '100%',
+                                height: '200px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: '#f0f0f0',
+                                color: '#888',
+                                fontSize: '16px'
+                            }}
+                        >
+                            画像がありません
+                        </div>
+                    )}
                 </Col>
                 <Col xs={24} md={12}>
                     <Descriptions bordered column={1}>
@@ -57,10 +109,9 @@ const RoomDetail = () => {
                         </Descriptions.Item>
                     </Descriptions>
 
-                    {/* Nút Chỉnh sửa và Xóa */}
                     <Space style={{ marginTop: 16 }}>
-                        <Button type="primary" onClick={handleEdit}>Chỉnh sửa</Button>
-                        <Button type="default" danger onClick={handleDelete}>Xóa</Button>
+                        <Button type="primary" onClick={handleEdit}>編集</Button>
+                        <Button type="default" danger onClick={handleDelete}>削除</Button>
                     </Space>
                 </Col>
             </Row>
