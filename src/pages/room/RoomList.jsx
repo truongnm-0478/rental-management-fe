@@ -1,27 +1,42 @@
 import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Input, Space, Table, Tag } from "antd";
+import { Button, Input, Space, Spin, Table, Tag } from "antd";
 import { createStyles } from "antd-style";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import COLORS from "../../constants/color.js";
-
-// Danh sách phòng mẫu
-const roomsData = Array.from({ length: 50 }).map((_, index) => ({
-    key: index.toString(),
-    roomNumber: `部屋 ${index + 1}`,
-    type: "1K",
-    id: (6781 + index).toString(),
-    address: "福岡県福岡市博多区諸岡3丁目29-12",
-    building: "レオパレス諸岡2",
-    shortPrice: Math.floor(Math.random() * (10000 - 4000) + 4000) + "円/日",
-    midPrice: Math.floor(Math.random() * (120000 - 50000) + 50000) + "円/月",
-    status: index % 2 === 0 ? "公開中" : "非公開",
-}));
+import { getAllRooms } from "../../services/userService.js";
 
 const RoomList = () => {
     const navigate = useNavigate();
     const { styles } = useStyle();
-    const [rooms, setRooms] = useState(roomsData);
+    const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
+    useEffect(() => {
+        fetchRooms(0);
+    }, []);
+
+    const fetchRooms = async (page = 0) => {
+        setLoading(true);
+        const data = await getAllRooms(page, 10);
+
+        const formattedData = data.content.map((room) => ({
+            ...room,
+            key: room.id.toString(),
+            shortPrice: room.shortPrice ? `${room.shortPrice}円/日` : "N/A",
+            midPrice: room.midPrice ? `${room.midPrice}円/月` : "N/A",
+            image: room.images?.length ? room.images[0] : null,
+            status: room.status === "AVAILABLE" ? "公開中" : "非公開",
+        }));
+ 
+        setRooms(formattedData);
+        setCurrentPage(data.number + 1);
+        setTotalPages(data.totalPages);
+        setLoading(false);
+    };
 
     const columns = [
         {
@@ -42,7 +57,16 @@ const RoomList = () => {
             title: "メイン写真",
             dataIndex: "image",
             key: "image",
-            render: () => <img src="https://afamilycdn.com/150157425591193600/2021/1/26/01-16116291542701404412585.jpg" alt="Room" style={{ width: 150 }} />,
+            render: (image) =>
+                image ? (
+                    <img
+                        src={image}
+                        alt="Room"
+                        style={{ width: 150, height: 100, objectFit: "cover", borderRadius: 5 }}
+                    />
+                ) : (
+                    <Tag color="gray">画像なし</Tag>
+                ),
             width: 150,
         },
         {
@@ -72,7 +96,7 @@ const RoomList = () => {
                     <div>ミドル: {record.midPrice}</div>
                 </>
             ),
-            sorter: (a, b) => parseInt(a.midPrice.replace("円/月", ""), 10) - parseInt(b.midPrice.replace("円/月", ""), 10),
+            sorter: (a, b) => parseInt(a.midPrice) - parseInt(b.midPrice),
             width: 150,
         },
         {
@@ -80,13 +104,8 @@ const RoomList = () => {
             dataIndex: "status",
             key: "status",
             render: (status) => <Tag color={status === "公開中" ? "green" : "red"}>{status}</Tag>,
-            filters: [
-                { text: "公開中", value: "公開中" },
-                { text: "非公開", value: "非公開" },
-            ],
-            onFilter: (value, record) => record.status === value,
             width: 100,
-        },
+        },      
         {
             title: "操作",
             key: "action",
@@ -106,8 +125,19 @@ const RoomList = () => {
     ];
 
     const handleCreate = () => {
-        navigate('/rooms/create');
+        navigate("/rooms/create");
     };
+
+    const filteredRooms = rooms.filter(
+        (room) =>
+            room.roomNumber.includes(searchTerm) ||
+            room.address.includes(searchTerm) ||
+            room.building.includes(searchTerm)
+    );
+
+    if (loading) {
+        return <Spin size="large" style={{ display: "block", margin: "auto" }} />;
+    }
 
     return (
         <div
@@ -119,28 +149,34 @@ const RoomList = () => {
             }}
         >
             <Space style={{ justifyContent: "space-between", width: "100%" }}>
-                <h4 style={{ color: COLORS.SECONDARY }}>運営している全ての部屋を登録しましょう。</h4>
+                <h4 style={{ color: COLORS.SECONDARY }}>
+                    運営している全ての部屋を登録しましょう。
+                </h4>
                 <Button onClick={handleCreate} type="primary" icon={<PlusOutlined />}>
                     部屋を追加
                 </Button>
             </Space>
             <Space style={{ justifyContent: "space-between", width: "100%" }}>
-                <h4>部屋 <strong>{rooms.length}</strong> 室</h4>
+                <h4>
+                    部屋 <strong>{filteredRooms.length}</strong> 室
+                </h4>
                 <Input.Search
                     placeholder="絞り込み検索"
                     style={{ width: 200 }}
-                    onSearch={(value) => {
-                        const filtered = roomsData.filter((room) => room.roomNumber.includes(value) || room.address.includes(value));
-                        setRooms(filtered);
-                    }}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </Space>
             <div style={{ overflowX: "auto" }}>
                 <Table
                     className={styles.customTable}
                     columns={columns}
-                    dataSource={rooms}
-                    pagination={{ pageSize: 10 }}
+                    dataSource={filteredRooms}
+                    pagination={{
+                        current: currentPage,
+                        total: totalPages * 10,
+                        pageSize: 10,
+                        onChange: (page) => fetchRooms(page - 1),
+                    }}
                     scroll={{ x: "max-content", y: 400 }}
                 />
             </div>

@@ -1,11 +1,12 @@
-import { API_URL } from '../constants/api'
+import axios from 'axios';
+import { API_URL } from '../constants/api';
 
-export const fetchUsers = async () => {
+export const getAllRooms = async (page = 0, size = 10) => {
     try {
-        const response = await fetch(`${API_URL}/users`)
-        return await response.json()
+        const response = await axios.get(`${API_URL}/rooms?page=${page}&size=${size}`);
+        return response.data;
     } catch (error) {
-        console.error("Error fetching users:", error)
+        console.error("Lỗi khi lấy danh sách phòng:", error)
         return []
     }
-}
+};
