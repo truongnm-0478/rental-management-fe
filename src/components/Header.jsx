@@ -1,38 +1,41 @@
-import { Layout, Menu } from 'antd'
+import { Layout, Menu } from 'antd';
+import { Link, useLocation } from 'react-router-dom';
 
-const { Header } = Layout
+const { Header } = Layout;
 
 const items = [
-    { key: '1', label: 'ホーム' },
-    { key: '2', label: 'サービス' },
-    { key: '3', label: 'お問い合わせ' },
-]
+    { key: '/', label: <Link to="/">ホーム</Link> },
+    // { key: '/about', label: <Link to="/about">サービス</Link> },
+    { key: '/rooms', label: <Link to="/rooms">部屋リスト</Link> },
+];
 
 const AppHeader = () => {
+    const location = useLocation();
+
     return (
         <Header
+            style={{
+                position: 'fixed',
+                top: 0,
+                zIndex: 999,
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+            }}
+        >
+            <div className="demo-logo" />
+            <Menu
+                theme="dark"
+                mode="horizontal"
+                selectedKeys={[location.pathname]}
+                items={items}
                 style={{
-                    position: 'fixed',
-                    top: 0,
-                    zIndex: 999,
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
+                    flex: 1,
+                    minWidth: 0,
                 }}
-            >
-                <div className="demo-logo" />
-                <Menu
-                    theme="dark"
-                    mode="horizontal"
-                    defaultSelectedKeys={['2']}
-                    items={items}
-                    style={{
-                        flex: 1,
-                        minWidth: 0,
-                    }}
-                />
-            </Header>
-    )
-}
+            />
+        </Header>
+    );
+};
 
-export default AppHeader
+export default AppHeader;

@@ -23,15 +23,10 @@ export const getRoomById = async (id) => {
 
 export const createRoom = async (room) => {
     try {
-        console.log("🔹 Dữ liệu gửi lên server:");
-        for (let pair of room.entries()) {
-            console.log(pair[0] + ": ", pair[1]);
-        }
-
         const response = await axios.post(
-            `${API_URL}/rooms`, 
-            room, 
-            { headers: { 'Content-Type': 'multipart/form-data' }}
+            `${API_URL}/rooms`,
+            room,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
         );
         return response.data;
     } catch (error) {
@@ -42,10 +37,26 @@ export const createRoom = async (room) => {
 
 export const deleteRoom = async (roomId) => {
     try {
-        console.log("DELETE ID: ", roomId)
         await axios.delete(`${API_URL}/rooms/${roomId}`);
     } catch (error) {
         console.error("Error when deleting room:", error);
+        throw error;
+    }
+};
+
+export const updateRoom = async (roomId, roomData) => {
+    try {
+        console.log("Sending data to update room:", roomData);
+
+        const response = await axios.put(
+            `${API_URL}/rooms/${roomId}`, 
+            roomData, 
+            { headers: { 'Content-Type': 'multipart/form-data' }}
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error("Error when updating room:", error);
         throw error;
     }
 };

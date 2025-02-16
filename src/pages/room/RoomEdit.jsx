@@ -1,91 +1,104 @@
 import { UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Form, Image, Input, InputNumber, message, Row, Select, Space, Upload } from 'antd';
-import md5 from 'crypto-js/md5';
+import { Button, Card, Col, Form, Image, Input, InputNumber, message, Row, Select, Space, Spin, Upload } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getRoomById, updateRoom } from '../../services/roomService';
 
 const { Option } = Select;
 
 const RoomEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
     const [form] = Form.useForm();
+    const [imageFile, setImageFile] = useState(null);
     const [imageUrl, setImageUrl] = useState(null);
 
-    // Giả lập API lấy thông tin phòng dựa trên ID
     useEffect(() => {
-        const mockRoom = {
-            id: id || md5('default-room').toString(),
-            roomNumber: "2C号室",
-            type: "1K",
-            address: "福岡県福岡市博多区諸岡3丁目29-12",
-            building: "レオパレス諸岡2",
-            shortPrice: 4500,
-            midPrice: 75000,
-            status: "公開中",
-            image: "https://afamilycdn.com/150157425591193600/2021/1/26/01-16116291542701404412585.jpg",
+        const fetchRoomData = async () => {
+            setLoading(true);
+            try {
+                const roomData = await getRoomById(id);
+                form.setFieldsValue(roomData);
+                setImageUrl(roomData.images?.length ? roomData.images[0] : null);
+            } catch (error) {
+                message.error("部屋のデータを読み込めません。");
+            } finally {
+                setLoading(false);
+            }
         };
 
-        form.setFieldsValue(mockRoom);
-        setImageUrl(mockRoom.image);
+        if (id) fetchRoomData();
     }, [id]);
 
-    // Xử lý khi chọn ảnh mới
     const handleImageChange = ({ file }) => {
         if (file) {
-            const newImageUrl = URL.createObjectURL(file);
-            setImageUrl(newImageUrl);
-            message.success('Ảnh đã được cập nhật!');
+            setImageFile(file);
+            setImageUrl(URL.createObjectURL(file));
+            message.success('画像が更新されました！');
         }
     };
 
-    // Xử lý lưu thay đổi
-    const onFinish = (values) => {
-        console.log('Dữ liệu phòng cập nhật:', { ...values, image: imageUrl });
-        message.success('Cập nhật thành công!');
-        navigate(`/rooms/${id}`);
+    const onFinish = async (values) => {
+        setLoading(true);
+        try {
+            const updatedRoom = { ...values };
+            if (imageFile) {
+                updatedRoom.image = imageFile;
+            }
+
+            await updateRoom(id, updatedRoom);
+            message.success('更新に成功しました！');
+            navigate(`/rooms/${id}`);
+        } catch (error) {
+            message.error('部屋の更新中にエラーが発生しました。');
+        } finally {
+            setLoading(false);
+        }
     };
 
+    if (loading) {
+        return <Spin size="large" style={{ display: "block", margin: "auto" }} />;
+    }
+
     return (
-        <Card title="Chỉnh sửa phòng" style={{ width: '100%', margin: '20px auto' }}>
+        <Card title="部屋を編集" style={{ width: '100%', margin: '20px auto' }}>
             <Row gutter={[16, 16]}>
-                {/* Ảnh phòng */}
                 <Col xs={24} md={12}>
                     {imageUrl ? (
                         <Image src={imageUrl} alt="Room Image" style={{ width: '100%', objectFit: 'cover' }} />
                     ) : (
                         <div style={{ width: '100%', height: 200, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span>Chưa có ảnh</span>
+                            <span>画像がありません</span>
                         </div>
                     )}
                     <Upload
                         showUploadList={false}
                         beforeUpload={(file) => {
                             handleImageChange({ file });
-                            return false; // Ngăn tải lên server
+                            return false;
                         }}
                         style={{ marginTop: 16 }}
                     >
-                        <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                        <Button icon={<UploadOutlined />} style={{ marginTop: 16 }}>画像を選択</Button>
                     </Upload>
                 </Col>
 
-                {/* Thông tin phòng */}
                 <Col xs={24} md={12}>
                     <Form layout="vertical" form={form} onFinish={onFinish}>
-                        <Form.Item label="部屋番号" name="roomNumber" rules={[{ required: true, message: 'Vui lòng nhập số phòng' }]}>
+                        <Form.Item label="部屋番号" name="roomNumber" rules={[{ required: true, message: '部屋番号を入力してください' }]}>
                             <Input />
                         </Form.Item>
 
-                        <Form.Item label="タイプ" name="type">
+                        <Form.Item label="タイプ" name="type" rules={[{ required: true, message: 'タイプを入力してください' }]}>
                             <Input />
                         </Form.Item>
 
-                        <Form.Item label="住所" name="address">
+                        <Form.Item label="住所" name="address" rules={[{ required: true, message: '住所を入力してください' }]}>
                             <Input />
                         </Form.Item>
 
-                        <Form.Item label="建物名" name="building">
+                        <Form.Item label="建物名" name="building" rules={[{ required: true, message: '建物名を入力してください' }]}>
                             <Input />
                         </Form.Item>
 
@@ -99,15 +112,16 @@ const RoomEdit = () => {
 
                         <Form.Item label="状況" name="status">
                             <Select>
-                                <Option value="公開中">公開中</Option>
-                                <Option value="非公開">非公開</Option>
+                                <Option value="AVAILABLE">公開中</Option>
+                                <Option value="RENTED">非公開</Option>
                             </Select>
                         </Form.Item>
 
                         <Space style={{ marginTop: 16 }}>
-                            <Button type="primary" htmlType="submit">Lưu thay đổi</Button>
-                            <Button onClick={() => navigate(-1)}>Hủy</Button>
+                            <Button type="primary" htmlType="submit">変更を保存</Button>
+                            <Button onClick={() => navigate(-1)}>キャンセル</Button>
                         </Space>
+
                     </Form>
                 </Col>
             </Row>

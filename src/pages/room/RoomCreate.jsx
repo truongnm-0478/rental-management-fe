@@ -1,5 +1,5 @@
 import { UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Form, Image, Input, InputNumber, message, Row, Select, Space, Upload } from 'antd';
+import { Button, Card, Col, Form, Image, Input, InputNumber, message, Row, Select, Space, Spin, Upload } from 'antd';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom } from '../../services/roomService';
@@ -11,6 +11,7 @@ const RoomCreate = () => {
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState(null);
     const [file, setFile] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const handleImageChange = ({ file }) => {
         if (file) {
@@ -21,6 +22,7 @@ const RoomCreate = () => {
     };
 
     const onFinish = async (values) => {
+        setLoading(true);
         try {
             const formData = new FormData();
             formData.append('roomNumber', values.roomNumber);
@@ -40,8 +42,14 @@ const RoomCreate = () => {
             navigate('/rooms');
         } catch (error) {
             message.error("部屋の作成中にエラーが発生しました。");
+        } finally {
+            setLoading(false);
         }
     };
+
+    if (loading) {
+        return <Spin size="large" style={{ display: "block", margin: "auto" }} />;
+    }
 
     return (
         <Card title="新しい部屋を作成" style={{ width: '100%', margin: '20px auto' }}>
