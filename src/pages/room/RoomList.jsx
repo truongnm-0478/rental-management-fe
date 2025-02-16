@@ -21,7 +21,7 @@ const RoomList = () => {
 
     const fetchRooms = async (page = 0) => {
         setLoading(true);
-        const data = await getAllRooms(page, 10);
+        const data = await getAllRooms(page, 6);
 
         const formattedData = data.content.map((room) => ({
             ...room,
@@ -177,7 +177,7 @@ const RoomList = () => {
                         pageSize: 10,
                         onChange: (page) => fetchRooms(page - 1),
                     }}
-                    scroll={{ x: "max-content", y: 400 }}
+                    scroll={{ x: "max-content"}}
                 />
             </div>
         </div>
