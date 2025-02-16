@@ -1,7 +1,7 @@
 import { Button, Card, Col, Descriptions, Image, message, Modal, Row, Space, Spin, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getRoomById } from '../../services/roomService'; // Gọi API từ file service
+import { deleteRoom, getRoomById } from '../../services/roomService';
 
 const RoomDetail = () => {
     const { id } = useParams();
@@ -20,7 +20,7 @@ const RoomDetail = () => {
             console.log("API Response:", data);
 
             if (!data) {
-                message.error("Không tìm thấy phòng.");
+                message.error("部屋が見つかりませんでした。");
                 return;
             }
 
@@ -36,8 +36,7 @@ const RoomDetail = () => {
                 status: data.status === "AVAILABLE" ? "公開中" : "非公開",
             });
         } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu phòng:", error);
-            message.error("Lỗi khi tải dữ liệu phòng.");
+            message.error("部屋のデータを読み込む際にエラーが発生しました。");
         } finally {
             setLoading(false);
         }
@@ -49,21 +48,29 @@ const RoomDetail = () => {
 
     const handleDelete = () => {
         Modal.confirm({
-            title: 'Xác nhận xóa',
-            content: 'Bạn có chắc chắn muốn xóa phòng này không?',
-            okText: 'Xóa',
-            okType: 'danger',
-            cancelText: 'Hủy',
-            onOk: () => message.success('Phòng đã bị xóa.'),
+            title: "部屋を削除しますか？",
+            content: "この部屋を本当に削除しますか？",
+            okText: "削除",
+            okType: "danger",
+            cancelText: "キャンセル",
+            onOk: async () => {
+                try {
+                    await deleteRoom(id);
+                    message.success("部屋が削除されました。");
+                    navigate('/rooms');
+                } catch (error) {
+                    message.error("部屋の削除中にエラーが発生しました。");
+                }
+            },
         });
-    };
+    };      
 
     if (loading) {
         return <Spin size="large" style={{ display: "block", margin: "auto", marginTop: "20px" }} />;
     }
 
     if (!room) {
-        return <p style={{ textAlign: "center", marginTop: "20px" }}>Không tìm thấy phòng.</p>;
+        return <p style={{ textAlign: "center", marginTop: "20px" }}>部屋が見つかりませんでした。</p>;
     }
 
     return (

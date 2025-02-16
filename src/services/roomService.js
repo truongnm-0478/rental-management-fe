@@ -6,7 +6,7 @@ export const getAllRooms = async (page = 0, size = 10) => {
         const response = await axios.get(`${API_URL}/rooms?page=${page}&size=${size}`);
         return response.data;
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách phòng:", error)
+        console.error("Error when getting room list:", error)
         return []
     }
 };
@@ -16,7 +16,7 @@ export const getRoomById = async (id) => {
         const response = await axios.get(`${API_URL}/rooms/${id}`);
         return response.data;
     } catch (error) {
-        console.error("Lỗi khi phòng theo id:", error)
+        console.error("Error when getting room by id:", error)
         return []
     }
 };
@@ -35,7 +35,17 @@ export const createRoom = async (room) => {
         );
         return response.data;
     } catch (error) {
-        console.error("Lỗi khi tạo phòng:", error)
+        console.error("Error when creating room:", error)
         return null
+    }
+};
+
+export const deleteRoom = async (roomId) => {
+    try {
+        console.log("DELETE ID: ", roomId)
+        await axios.delete(`${API_URL}/rooms/${roomId}`);
+    } catch (error) {
+        console.error("Error when deleting room:", error);
+        throw error;
     }
 };

@@ -14,7 +14,7 @@ const RoomCreate = () => {
 
     const handleImageChange = ({ file }) => {
         if (file) {
-            setFile(file); // Lưu file để gửi lên server
+            setFile(file);
             const newImageUrl = URL.createObjectURL(file);
             setImageUrl(newImageUrl);
         }
@@ -36,11 +36,10 @@ const RoomCreate = () => {
 
             await createRoom(formData);
 
-            message.success('Phòng mới đã được tạo!');
+            message.success("新しい部屋が作成されました！");
             navigate('/rooms');
         } catch (error) {
-            console.error('Lỗi khi tạo phòng:', error);
-            message.error('Đã xảy ra lỗi khi tạo phòng.');
+            message.error("部屋の作成中にエラーが発生しました。");
         }
     };
 
