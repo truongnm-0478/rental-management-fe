@@ -1,13 +1,15 @@
 import axios from 'axios';
 import { API_URL } from '../constants/api';
 
-export const getAllRooms = async (page = 0, size = 10) => {
+export const getAllRooms = async (page = 0, size = 6, search = "") => {
     try {
-        const response = await axios.get(`${API_URL}/rooms?page=${page}&size=${size}`);
+        const response = await axios.get(`${API_URL}/rooms`, {
+            params: { page, size, search },
+        });
         return response.data;
     } catch (error) {
         console.error("Error when getting room list:", error)
-        return []
+        return { content: [], totalPages: 1, number: 0 };
     }
 };
 

@@ -16,43 +16,44 @@ const RoomList = () => {
     const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        fetchRooms(0);
-    }, []);
+        const delaySearch = setTimeout(() => {
+            fetchRooms(0, searchTerm);
+        }, 300);
+    
+        return () => clearTimeout(delaySearch);
+    }, [searchTerm]);
 
-    const fetchRooms = async (page = 0) => {
+    const fetchRooms = async (page = 0, search = "") => {
         setLoading(true);
-        const data = await getAllRooms(page, 6);
+        try {
+            const data = await getAllRooms(page, 6, search);
 
-        const formattedData = data.content.map((room) => ({
-            ...room,
-            key: room.id.toString(),
-            shortPrice: room.shortPrice ? `${room.shortPrice}円/日` : "N/A",
-            midPrice: room.midPrice ? `${room.midPrice}円/月` : "N/A",
-            image: room.images?.length ? room.images[0] : null,
-            status: room.status === "AVAILABLE" ? "公開中" : "非公開",
-        }));
- 
-        setRooms(formattedData);
-        setCurrentPage(data.number + 1);
-        setTotalPages(data.totalPages);
-        setLoading(false);
+            const formattedData = data.content.map((room) => ({
+                ...room,
+                key: room.id.toString(),
+                shortPrice: room.shortPrice ? `${room.shortPrice}円/日` : "N/A",
+                midPrice: room.midPrice ? `${room.midPrice}円/月` : "N/A",
+                image: room.images?.length ? room.images[0] : null,
+                status: room.status === "AVAILABLE" ? "公開中" : "非公開",
+            }));
+
+            setRooms(formattedData);
+            setCurrentPage(data.number + 1);
+            setTotalPages(data.totalPages);
+        } catch (error) {
+            console.error("Error fetching rooms:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = (value) => {
+        setSearchTerm(value);
     };
 
     const columns = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-            fixed: "left",
-            width: 80,
-        },
-        {
-            title: "部屋番号",
-            dataIndex: "roomNumber",
-            key: "roomNumber",
-            fixed: "left",
-            width: 100,
-        },
+        { title: "ID", dataIndex: "id", key: "id", fixed: "left", width: 80 },
+        { title: "部屋番号", dataIndex: "roomNumber", key: "roomNumber", fixed: "left", width: 100 },
         {
             title: "メイン写真",
             dataIndex: "image",
@@ -69,24 +70,9 @@ const RoomList = () => {
                 ),
             width: 150,
         },
-        {
-            title: "タイプ",
-            dataIndex: "type",
-            key: "type",
-            width: 80,
-        },
-        {
-            title: "住所",
-            dataIndex: "address",
-            key: "address",
-            width: 200,
-        },
-        {
-            title: "建物名",
-            dataIndex: "building",
-            key: "building",
-            width: 150,
-        },
+        { title: "タイプ", dataIndex: "type", key: "type", width: 80 },
+        { title: "住所", dataIndex: "address", key: "address", width: 200 },
+        { title: "建物名", dataIndex: "building", key: "building", width: 150 },
         {
             title: "基本料金プラン",
             key: "price",
@@ -105,7 +91,7 @@ const RoomList = () => {
             key: "status",
             render: (status) => <Tag color={status === "公開中" ? "green" : "red"}>{status}</Tag>,
             width: 100,
-        },      
+        },
         {
             title: "操作",
             key: "action",
@@ -127,13 +113,6 @@ const RoomList = () => {
     const handleCreate = () => {
         navigate("/rooms/create");
     };
-
-    const filteredRooms = rooms.filter(
-        (room) =>
-            room.roomNumber.includes(searchTerm) ||
-            room.address.includes(searchTerm) ||
-            room.building.includes(searchTerm)
-    );
 
     if (loading) {
         return <Spin size="large" style={{ display: "block", margin: "auto" }} />;
@@ -158,24 +137,26 @@ const RoomList = () => {
             </Space>
             <Space style={{ justifyContent: "space-between", width: "100%" }}>
                 <h4>
-                    部屋 <strong>{filteredRooms.length}</strong> 室
+                    部屋 <strong>{rooms.length}</strong> 室
                 </h4>
+
                 <Input.Search
-                    placeholder="絞り込み検索"
-                    style={{ width: 200 }}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="部屋番号、建物名、タイプで検索"
+                    style={{ width: 300 }}
+                    onSearch={handleSearch}
+                    allowClear
                 />
             </Space>
             <div style={{ overflowX: "auto" }}>
                 <Table
                     className={styles.customTable}
                     columns={columns}
-                    dataSource={filteredRooms}
+                    dataSource={rooms}
                     pagination={{
                         current: currentPage,
                         total: totalPages * 10,
                         pageSize: 10,
-                        onChange: (page) => fetchRooms(page - 1),
+                        onChange: (page) => fetchRooms(page - 1, searchTerm),
                     }}
                     scroll={{ x: "max-content"}}
                 />
