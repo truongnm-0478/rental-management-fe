@@ -11,7 +11,7 @@ const RoomCreate = () => {
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState(null);
     const [file, setFile] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const handleImageChange = ({ file }) => {
         if (file) {
